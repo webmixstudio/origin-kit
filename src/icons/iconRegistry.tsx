@@ -8,28 +8,6 @@ import {
   OpenAIIcon,
 } from './icons';
 
-export type AIModelName =
-  | 'gpt'
-  | 'gpt-3.5'
-  | 'gpt-4'
-  | 'gpt-4o'
-  | 'openai'
-  | 'claude'
-  | 'claude-3'
-  | 'anthropic'
-  | 'gemini'
-  | 'gemini-pro'
-  | 'google'
-  | 'grok'
-  | 'xai'
-  | 'midjourney'
-  | (string & {});
-
-export interface LogoIconProps extends IconProps {
-  /** Model/provider name. */
-  name: AIModelName;
-}
-
 type IconComponent = React.ForwardRefExoticComponent<
   IconProps & React.RefAttributes<SVGSVGElement>
 >;
@@ -38,7 +16,7 @@ type IconComponent = React.ForwardRefExoticComponent<
 /* Registry                                                                   */
 /* -------------------------------------------------------------------------- */
 
-export const iconRegistry = Object.freeze<Record<string, IconComponent>>({
+export const iconRegistry = Object.freeze({
   // OpenAI
   gpt: OpenAIIcon,
   'gpt-3.5': OpenAIIcon,
@@ -62,7 +40,14 @@ export const iconRegistry = Object.freeze<Record<string, IconComponent>>({
 
   // Others
   midjourney: MidjourneyIcon,
-});
+} as const);
+
+export type AIModelName = keyof typeof iconRegistry;
+
+export interface LogoIconProps extends IconProps {
+  /** Model/provider name. */
+  name: AIModelName;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Aliases                                                                    */
@@ -104,6 +89,8 @@ export function normalizeModelName(name?: string): string {
     return '';
   }
 
+  const PROVIDERS = ['openai', 'anthropic', 'google', 'xai'];
+
   let normalized = name
     .toLowerCase()
     .trim()
@@ -111,21 +98,29 @@ export function normalizeModelName(name?: string): string {
     .replace(/\s+/g, ' ');
 
   // Remove provider prefixes
-  normalized = normalized
-    .replace(/^openai[:/]\s*/, '')
-    .replace(/^anthropic[:/]\s*/, '')
-    .replace(/^google[:/]\s*/, '')
-    .replace(/^xai[:/]\s*/, '');
+  for (const provider of PROVIDERS) {
+    normalized = normalized.replace(
+      new RegExp(`^${provider}[:/]\\s*`),
+      ''
+    );
+  }
 
   return aliasRegistry[normalized] ?? normalized.replace(/\s+/g, '-');
 }
 
 export function hasLogo(name?: string): boolean {
-  return normalizeModelName(name) in iconRegistry;
+  const normalizedName = normalizeModelName(name);
+  return normalizedName in iconRegistry;
 }
 
 export function getLogoComponent(name?: string): IconComponent | undefined {
-  return iconRegistry[normalizeModelName(name)];
+  const normalizedName = normalizeModelName(name) as AIModelName;
+
+  if (!(normalizedName in iconRegistry)) {
+    return undefined;
+  }
+
+  return iconRegistry[normalizedName];
 }
 
 /* -------------------------------------------------------------------------- */
