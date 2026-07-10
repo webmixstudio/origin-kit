@@ -23,15 +23,11 @@ export type AIModelName =
   | 'grok'
   | 'xai'
   | 'midjourney'
-  | 'origin'
   | (string & {});
 
 export interface LogoIconProps extends IconProps {
   /** Model/provider name. */
-  name?: AIModelName;
-
-  /** Optional icon used if the name cannot be resolved. */
-  fallbackIcon?: IconComponent;
+  name: AIModelName;
 }
 
 type IconComponent = React.ForwardRefExoticComponent<
@@ -39,7 +35,7 @@ type IconComponent = React.ForwardRefExoticComponent<
 >;
 
 /* -------------------------------------------------------------------------- */
-/* Registry                                                                    */
+/* Registry                                                                   */
 /* -------------------------------------------------------------------------- */
 
 export const iconRegistry = Object.freeze<Record<string, IconComponent>>({
@@ -66,13 +62,10 @@ export const iconRegistry = Object.freeze<Record<string, IconComponent>>({
 
   // Others
   midjourney: MidjourneyIcon,
-
-  // Default
-  origin: OpenAIIcon,
 });
 
 /* -------------------------------------------------------------------------- */
-/* Aliases                                                                     */
+/* Aliases                                                                    */
 /* -------------------------------------------------------------------------- */
 
 const aliasRegistry = Object.freeze<Record<string, string>>({
@@ -103,12 +96,12 @@ const aliasRegistry = Object.freeze<Record<string, string>>({
 });
 
 /* -------------------------------------------------------------------------- */
-/* Helpers                                                                     */
+/* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
 export function normalizeModelName(name?: string): string {
   if (!name) {
-    return 'origin';
+    return '';
   }
 
   let normalized = name
@@ -131,33 +124,34 @@ export function hasLogo(name?: string): boolean {
   return normalizeModelName(name) in iconRegistry;
 }
 
-export function getLogoComponent(
-  name?: string,
-  fallback?: IconComponent
-): IconComponent {
-  return (
-    iconRegistry[normalizeModelName(name)] ??
-    fallback ??
-    iconRegistry.origin
-  );
+export function getLogoComponent(name?: string): IconComponent | undefined {
+  return iconRegistry[normalizeModelName(name)];
 }
 
 /* -------------------------------------------------------------------------- */
-/* Component                                                                    */
+/* Component                                                                  */
 /* -------------------------------------------------------------------------- */
 
 export const LogoIcon = forwardRef<SVGSVGElement, LogoIconProps>(
   (
     {
-      name = 'origin',
-      fallbackIcon,
+      name,
       size = 24,
       className = '',
       ...props
     },
     ref
   ) => {
-    const Icon = getLogoComponent(name, fallbackIcon);
+    const Icon = getLogoComponent(name);
+
+    if (!Icon) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          `[LogoIcon] The model name "${name}" does not match any registered icons.`
+        );
+      }
+      return null;
+    }
 
     return (
       <Icon
@@ -169,11 +163,10 @@ export const LogoIcon = forwardRef<SVGSVGElement, LogoIconProps>(
     );
   }
 );
-
 LogoIcon.displayName = 'LogoIcon';
 
 /* -------------------------------------------------------------------------- */
-/* Exports                                                                     */
+/* Exports                                                                    */
 /* -------------------------------------------------------------------------- */
 
 export const supportedLogoNames = Object.keys(iconRegistry) as AIModelName[];
