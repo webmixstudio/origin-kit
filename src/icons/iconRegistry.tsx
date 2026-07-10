@@ -4,9 +4,8 @@ import {
   GeminiIcon,
   GrokIcon,
   IconProps,
-  OpenAIIcon,
-  OriginLogoIcon,
   MidjourneyIcon,
+  OpenAIIcon,
 } from './icons';
 
 export type AIModelName =
@@ -28,77 +27,153 @@ export type AIModelName =
   | (string & {});
 
 export interface LogoIconProps extends IconProps {
-  /** The normalized model or brand key used to resolve the icon. */
+  /** Model/provider name. */
   name?: AIModelName;
-  /** Optional fallback icon used when the lookup misses. Accepts forwardRef components. */
-  fallbackIcon?: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>>;
+
+  /** Optional icon used if the name cannot be resolved. */
+  fallbackIcon?: IconComponent;
 }
 
-// 2. Create an O(1) lookup map.
-// This is significantly faster and cleaner than a giant switch statement.
-const iconRegistry: Record<string, React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>>> = {
+type IconComponent = React.ForwardRefExoticComponent<
+  IconProps & React.RefAttributes<SVGSVGElement>
+>;
+
+/* -------------------------------------------------------------------------- */
+/* Registry                                                                    */
+/* -------------------------------------------------------------------------- */
+
+export const iconRegistry = Object.freeze<Record<string, IconComponent>>({
   // OpenAI
-  'gpt': OpenAIIcon,
+  gpt: OpenAIIcon,
   'gpt-3.5': OpenAIIcon,
   'gpt-4': OpenAIIcon,
   'gpt-4o': OpenAIIcon,
-  'openai': OpenAIIcon,
-  
+  openai: OpenAIIcon,
+
   // Anthropic
-  'claude': AnthropicIcon,
+  claude: AnthropicIcon,
   'claude-3': AnthropicIcon,
-  'anthropic': AnthropicIcon,
-  
+  anthropic: AnthropicIcon,
+
   // Google
-  'gemini': GeminiIcon,
+  gemini: GeminiIcon,
   'gemini-pro': GeminiIcon,
-  'google': GeminiIcon,
-  
+  google: GeminiIcon,
+
   // xAI
-  'grok': GrokIcon,
-  'xai': GrokIcon,
-  
+  grok: GrokIcon,
+  xai: GrokIcon,
+
   // Others
-  'midjourney': MidjourneyIcon,
-  'origin': OriginLogoIcon,
-};
+  midjourney: MidjourneyIcon,
 
-const aliasRegistry: Record<string, string> = {
-  'gpt4': 'gpt-4',
-  'gpt4o': 'gpt-4o',
+  // Default
+  origin: OpenAIIcon,
+});
+
+/* -------------------------------------------------------------------------- */
+/* Aliases                                                                     */
+/* -------------------------------------------------------------------------- */
+
+const aliasRegistry = Object.freeze<Record<string, string>>({
+  // OpenAI
+  gpt4: 'gpt-4',
   'gpt 4': 'gpt-4',
-  'gpt 4o': 'gpt-4o',
-  'open ai': 'openai',
-  'claude 3': 'claude-3',
-  'gemini pro': 'gemini-pro',
-  'x ai': 'xai',
-  'mid journey': 'midjourney',
-};
 
-const normalizeModelName = (name?: string) => {
+  gpt4o: 'gpt-4o',
+  'gpt 4o': 'gpt-4o',
+
+  gpt35: 'gpt-3.5',
+  'gpt 3.5': 'gpt-3.5',
+  'gpt-35': 'gpt-3.5',
+
+  'open ai': 'openai',
+
+  // Anthropic
+  'claude 3': 'claude-3',
+
+  // Google
+  'gemini pro': 'gemini-pro',
+
+  // xAI
+  'x ai': 'xai',
+
+  // Midjourney
+  'mid journey': 'midjourney',
+});
+
+/* -------------------------------------------------------------------------- */
+/* Helpers                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export function normalizeModelName(name?: string): string {
   if (!name) {
     return 'origin';
   }
 
-  const normalized = name.toLowerCase().trim().replace(/\s+/g, ' ');
-  return aliasRegistry[normalized] ?? normalized;
-};
+  let normalized = name
+    .toLowerCase()
+    .trim()
+    .replace(/[_-]/g, ' ')
+    .replace(/\s+/g, ' ');
 
-// 3. The Factory Component
+  // Remove provider prefixes
+  normalized = normalized
+    .replace(/^openai[:/]\s*/, '')
+    .replace(/^anthropic[:/]\s*/, '')
+    .replace(/^google[:/]\s*/, '')
+    .replace(/^xai[:/]\s*/, '');
+
+  return aliasRegistry[normalized] ?? normalized.replace(/\s+/g, '-');
+}
+
+export function hasLogo(name?: string): boolean {
+  return normalizeModelName(name) in iconRegistry;
+}
+
+export function getLogoComponent(
+  name?: string,
+  fallback?: IconComponent
+): IconComponent {
+  return (
+    iconRegistry[normalizeModelName(name)] ??
+    fallback ??
+    iconRegistry.origin
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Component                                                                    */
+/* -------------------------------------------------------------------------- */
+
 export const LogoIcon = forwardRef<SVGSVGElement, LogoIconProps>(
-  ({ name = 'origin', size = 24, className = '', fallbackIcon: FallbackIcon, ...props }, ref) => {
-    const normalizedName = normalizeModelName(name as string);
-    const MappedIcon = iconRegistry[normalizedName];
-    const Fallback = FallbackIcon ?? OriginLogoIcon;
+  (
+    {
+      name = 'origin',
+      fallbackIcon,
+      size = 24,
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
+    const Icon = getLogoComponent(name, fallbackIcon);
 
-    if (!MappedIcon) {
-      return <Fallback ref={ref} size={size} className={className} {...props} />;
-    }
-
-    return <MappedIcon ref={ref} size={size} className={className} {...props} />;
+    return (
+      <Icon
+        ref={ref}
+        size={size}
+        className={className}
+        {...props}
+      />
+    );
   }
 );
 
 LogoIcon.displayName = 'LogoIcon';
+
+/* -------------------------------------------------------------------------- */
+/* Exports                                                                     */
+/* -------------------------------------------------------------------------- */
 
 export const supportedLogoNames = Object.keys(iconRegistry) as AIModelName[];

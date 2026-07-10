@@ -1,39 +1,8 @@
-import React, { forwardRef } from 'react';
+import { forwardRef, useId, type SVGProps } from 'react';
 
-export interface IconProps extends React.SVGProps<SVGSVGElement> {
+export interface IconProps extends SVGProps<SVGSVGElement> {
   size?: number | string;
-  className?: string;
 }
-
-// ----------------------------------------------------------------------
-// BRAND & SYSTEM LOGOS
-// ----------------------------------------------------------------------
-
-export const OriginLogoIcon = forwardRef<SVGSVGElement, IconProps>(
-  ({ size = 24, className = '', ...props }, ref) => (
-    <svg
-      ref={ref}
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      {...props}
-    >
-      {/* 
-        Reconstructed from origin-system.png 
-        Flat Vector Design, Scalable, No Effects 
-      */}
-      <path d="M10.5 2H7L2 7V10.5H10.5V2Z" fill="currentColor" />
-      <path d="M13.5 2H17L22 7V10.5H13.5V2Z" fill="currentColor" />
-      <path d="M10.5 22H7L2 17V13.5H10.5V22Z" fill="currentColor" />
-      <path d="M13.5 22H17L22 17V13.5H13.5V22Z" fill="currentColor" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-    </svg>
-  )
-);
-OriginLogoIcon.displayName = 'OriginLogoIcon';
 
 // ----------------------------------------------------------------------
 // AI MODEL LOGOS
@@ -153,28 +122,49 @@ MidjourneyIcon.displayName = 'MidjourneyIcon';
 // ----------------------------------------------------------------------
 
 export const TextGeneratorIcon = forwardRef<SVGSVGElement, IconProps>(
-  ({ size = 42, className = '', ...props }, ref) => (
-    <svg
-      ref={ref}
-      width={size}
-      height={size}
-      viewBox="0 0 42 42"
-      fill="none"
-      className={className}
-      {...props}
-    >
-      {/* ... [Your exact complex SVG paths for TextGenerator here] ... */}
-      <circle cx="21" cy="21" r="16" fill="url(#text_paint0_radial)" />
-      <path d="M14 21h14M21 14v14" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-      <defs>
-        <radialGradient id="text_paint0_radial" cx="0" cy="0" r="1" gradientTransform="translate(21 21) scale(16)">
-          <stop stopColor="#7F68FF" />
-          <stop offset="1" stopColor="#BEB2FF" />
-        </radialGradient>
-      </defs>
-    </svg>
-  )
+  ({ size = 42, className = '', ...props }, ref) => {
+    const gradientId = useId();
+
+    return (
+      <svg
+        ref={ref}
+        width={size}
+        height={size}
+        viewBox="0 0 42 42"
+        fill="none"
+        className={className}
+        aria-hidden="true"
+        focusable="false"
+        {...props}
+      >
+        {/* Your exact SVG paths here */}
+
+        <circle cx="21" cy="21" r="16" fill={`url(#${gradientId})`} />
+
+        <path
+          d="M14 21h14M21 14v14"
+          stroke="#fff"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+
+        <defs>
+          <radialGradient
+            id={gradientId}
+            cx="0"
+            cy="0"
+            r="1"
+            gradientTransform="translate(21 21) scale(16)"
+          >
+            <stop stopColor="#7F68FF" />
+            <stop offset="1" stopColor="#BEB2FF" />
+          </radialGradient>
+        </defs>
+      </svg>
+    );
+  }
 );
+
 TextGeneratorIcon.displayName = 'TextGeneratorIcon';
 
 // Add ImageGenerator, VideoGenerator, and CodeGenerator here following the exact same `forwardRef` wrapper pattern.
