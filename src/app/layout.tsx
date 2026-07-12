@@ -12,8 +12,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "",
-  description: "",
+  title: {
+    default: 'Demo OriginKit - Next.js AI Starter Kit Demo',
+    template: '%s | OriginKit',
+  },
+  description:
+    'Demo website of OriginKit boilerplate. Built using Next.js, Tailwind CSS.',
 };
 
 export default function RootLayout({
@@ -28,14 +32,14 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
-            <Toaster />
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );
