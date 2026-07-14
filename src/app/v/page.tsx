@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 export default function OriginKitPremium() {
-  const [copyStatus, setCopyStatus] = useState("npx origin-kit@latest init");
+  const [copyStatus, setCopyStatus] = useState("npm run dev");
 
   return (
     <div className="min-h-screen">

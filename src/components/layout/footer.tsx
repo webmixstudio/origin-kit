@@ -1,13 +1,11 @@
-
 import {
   ArrowRight, Command, Disc,
 } from 'lucide-react';
 
 export default function OriginKitPremium() {
 
-
   return (
-    <footer className="relative max-w-7xl mx-auto overflow-hidden pt-32 pb-12 px-6 border-t border-black/5 dark:border-white/5 bg-gradient-to-b from-transparent to-black/[0.02] dark:to-white/[0.02]">
+    <footer className="relative  overflow-hidden pt-32 pb-12 px-6 border-t border-black/5 dark:border-white/5 bg-gradient-to-b from-transparent to-black/[0.02] dark:to-white/[0.02]">
 
       {/* Subtle Monochromatic SVG Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none opacity-[0.12] dark:opacity-[0.07] text-black dark:text-white w-full max-w-5xl overflow-hidden flex justify-center">
